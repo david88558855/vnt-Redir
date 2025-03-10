@@ -7,7 +7,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-
+permissions:
+  contents: write
 defaults:
   run:
     # necessary for windows
@@ -90,7 +91,7 @@ jobs:
       - name: Init submodules
         uses: snickerbockers/submodules-init@v4
       - name: Cargo cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
@@ -243,7 +244,7 @@ jobs:
       - name: Release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.YOURTOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./artifacts/**/*.tar.gz
           tag: ${{ github.ref }}
           overwrite: true

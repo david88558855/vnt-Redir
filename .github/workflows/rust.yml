@@ -135,6 +135,9 @@ jobs:
                 MUSL_URI=mips-linux-muslsf-cross
                 URL=mips-linux-muslsf
                 ;;
+              i686-unknown-linux-musl)
+                MUSL_URI=i686-linux-musl-cross
+                ;;
             esac
           
             if [[ $TARGET =~ ^mips.*$ ]]; then
@@ -204,7 +207,8 @@ jobs:
           [target.aarch64-apple-darwin]
           rustflags = ["-C", "target-feature=+crt-static","-C", "strip=symbols"]     
           [target.i686-unknown-linux-musl]
-          rustflags = ["-C", "target-feature=+crt-static","-C", "strip=symbols"]    
+          linker = "i686-linux-musl-gcc"
+          rustflags = ["-C", "target-feature=+crt-static","-C", "strip=symbols"]   
           EOF
       - name: Install rust target
         if: ${{ ! startsWith(matrix.TARGET, 'mips') }}

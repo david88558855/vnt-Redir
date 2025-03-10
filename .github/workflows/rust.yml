@@ -140,6 +140,16 @@ jobs:
                 ;;
             esac
           
+            if [  -n "$MUSL_URI" ]; then
+              mkdir -p /opt/musl_gcc 
+              wget -c https://musl.cc/$MUSL_URI.tgz -P /opt/musl_gcc/
+              tar zxf /opt/musl_gcc/$MUSL_URI.tgz -C /opt/musl_gcc/
+              sudo ln -s /opt/musl_gcc/$MUSL_URI/bin/*gcc /usr/bin/
+            fi
+          else
+            rustup install 1.77
+            rustup default 1.77 
+          fi
             if [[ $TARGET =~ ^mips.*$ ]]; then
               # mips平台使用nightly版本
               cd /opt/musl_gcc/${URL}-cross/lib/gcc/${URL}/11.2.1
@@ -154,17 +164,6 @@ jobs:
               rustup install 1.77
               rustup default 1.77
             fi
-          
-            if [  -n "$MUSL_URI" ]; then
-              mkdir -p /opt/musl_gcc 
-              wget -c https://musl.cc/$MUSL_URI.tgz -P /opt/musl_gcc/
-              tar zxf /opt/musl_gcc/$MUSL_URI.tgz -C /opt/musl_gcc/
-              sudo ln -s /opt/musl_gcc/$MUSL_URI/bin/*gcc /usr/bin/
-            fi
-          else
-            rustup install 1.77
-            rustup default 1.77 
-          fi
           rustup -V
           
           # some additional configuration for cross-compilation on linux

@@ -147,10 +147,10 @@ jobs:
               sudo ln -s /opt/musl_gcc/$MUSL_URI/bin/*gcc /usr/bin/
             fi
           else
-            rustup install 1.77
-            rustup default 1.77 
+              rustup install 1.77
+              rustup default 1.77
           fi
-            if [[ $TARGET =~ ^mips.*$ ]]; then
+          if [[ $TARGET =~ ^mips.*$ ]]; then
               # mips平台使用nightly版本
               cd /opt/musl_gcc/${URL}-cross/lib/gcc/${URL}/11.2.1
               cp libgcc_eh.a libunwind.a
@@ -160,10 +160,10 @@ jobs:
               if [[ -f $RUST_LIB_SRC/library/Cargo.lock && ! -f $RUST_LIB_SRC/Cargo.lock ]]; then 
                  cp -f $RUST_LIB_SRC/library/Cargo.lock $RUST_LIB_SRC/Cargo.lock
               fi 
-            else
+          else
               rustup install 1.77
               rustup default 1.77
-            fi
+          fi
           rustup -V
           
           # some additional configuration for cross-compilation on linux

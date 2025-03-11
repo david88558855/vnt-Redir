@@ -1,0 +1,100 @@
+name: 打包docker镜像
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '请填写打包镜像的版本号'
+        required: true
+        default: ''
+      latest:
+        description: '是否打包成最新latest镜像'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  tags: "${{ github.event.inputs.tag }}"
+
+permissions:
+  contents: write
+  packages: write  # 允许写入 GitHub Container Registry (GHCR)
+jobs:
+ build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 下载二进制文件
+        run: |
+          mkdir -p /opt/vnt
+          cd /opt/vnt
+          wget -c https://github.com/lmq8267/vnt-Redir/releases/download/${{ env.tags }}/vnt-x86_64-unknown-linux-musl-${{ env.tags }}.tar.gz -P /opt/
+          tar zxf /opt/vnt-x86_64-unknown-linux-musl-${{ env.tags }}.tar.gz -C /opt/vnt/
+          chmod a+x vnt-cli vn-link-cli
+          mv vnt-cli vnt-cli_amd64
+          mv vn-link-cli vn-link-cli_amd64
+
+          wget -c https://github.com/lmq8267/vnt-Redir/releases/download/${{ env.tags }}/vnt-i686-unknown-linux-musl-${{ env.tags }}.tar.gz -P /opt/
+          tar zxf /opt/vnt-i686-unknown-linux-musl-${{ env.tags }}.tar.gz -C /opt/vnt/
+          chmod a+x vnt-cli vn-link-cli
+          mv vnt-cli vnt-cli_386
+          mv vn-link-cli vn-link-cli_386
+
+          wget -c https://github.com/lmq8267/vnt-Redir/releases/download/${{ env.tags }}/vnt-aarch64-unknown-linux-musl-${{ env.tags }}.tar.gz -P /opt/
+          tar zxf /opt/vnt-aarch64-unknown-linux-musl-${{ env.tags }}.tar.gz -C /opt/vnt/
+          chmod a+x vnt-cli vn-link-cli
+          mv vnt-cli vnt-cli_arm64
+          mv vn-link-cli vn-link-cli_arm64
+          
+          wget -c https://github.com/lmq8267/vnt-Redir/releases/download/${{ env.tags }}/vnt-armv7-unknown-linux-musleabihf-${{ env.tags }}.tar.gz -P /opt/
+          tar zxf /opt/vnt-armv7-unknown-linux-musleabihf-${{ env.tags }}.tar.gz -C /opt/vnt/
+          chmod a+x vnt-cli vn-link-cli
+          mv vnt-cli vnt-cli_armv7
+          mv vn-link-cli vn-link-cli_armv7
+
+          wget -c https://github.com/lmq8267/vnt-Redir/releases/download/${{ env.tags }}/vnt-arm-unknown-linux-musleabihf-${{ env.tags }}.tar.gz -P /opt/
+          tar zxf /opt/vnt-arm-unknown-linux-musleabihf-${{ env.tags }}.tar.gz -C /opt/vnt/
+          chmod a+x vnt-cli vn-link-cli
+          mv vnt-cli vnt-cli_armv6
+          mv vn-link-cli vn-link-cli_armv6
+          
+      - name: Setup QEMU
+        uses: dbhi/qus/action@main
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+         username: ${{ github.repository_owner }}
+         password: ${{ secrets.DOCKER_TOKEN }}
+      - name: login github container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 构建发布
+        run: |
+         git clone https://github.com/lmq8267/vnt /opt/src
+         mv /opt/src/Dockerfile /opt/vnt/Dockerfile
+      - name: Build and Push Docker Latest Image
+        if: github.event.inputs.latest == 'true'
+        uses: docker/build-push-action@v5
+        with:
+         push: true
+         tags: |
+          docker.io/${{ github.repository_owner }}/vnt:${{ env.tags }}
+          docker.io/${{ github.repository_owner }}/vnt:latest
+          ghcr.io/${{ github.repository_owner }}/vnt:${{ env.tags }}
+          ghcr.io/${{ github.repository_owner }}/vnt:latest
+         platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6
+         context: /opt/vnt
+      - name: Build and Push Docker Image
+        if: github.event.inputs.latest == 'false'
+        uses: docker/build-push-action@v5
+        with:
+         push: true
+         tags: |
+          docker.io/${{ github.repository_owner }}/vnt:${{ env.tags }}
+          ghcr.io/${{ github.repository_owner }}/vnt:${{ env.tags }}
+         platforms: linux/amd64,linux/386,linux/arm64,linux/arm/v7,linux/arm/v6
+         context: /opt/vnt
